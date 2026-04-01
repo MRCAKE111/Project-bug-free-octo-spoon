@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Furby Simulation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="simulation-container">
+        <div class="furby-avatar" id="furby">
+            <div class="ears">
+                <div class="ear left" id="leftEar"></div>
+                <div class="ear right" id="rightEar"></div>
+            </div>
+            <div class="eyes">
+                <div class="eye"></div>
+                <div class="eye"></div>
+            </div>
+            <div class="beak" id="beak"></div>
+        </div>
+
+        <div class="controls">
+            <button onclick="interact('pet')">Pet</button>
+            <button onclick="interact('tickle')">Tickle</button>
+            <button onclick="interact('feed')">Feed</button>
+            <button id="voiceBtn" class="mic-off">Voice Command</button>
+        </div>
+
+        <div class="status-panel">
+            <p>Mode: <span id="currentMode">Normal</span></p>
+            <p id="dialogue">"Hoo-hey! Me ready to play!"</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
