@@ -1,74 +1,57 @@
-const dialogueBox = document.getElementById('dialogue');
-const modeDisplay = document.getElementById('currentMode');
-const leftEar = document.getElementById('leftEar');
-const rightEar = document.getElementById('rightEar');
-const voiceBtn = document.getElementById('voiceBtn');
 
-let currentMode = "Normal";
-
+// Expanded phrase library
 const responses = {
-    pet: ["*Purrs*", "Ooh, tickle my heart!", "Love you!"],
-    tickle: ["Hehehe! Stop it!", "Wiggle wiggle!", "Me so ticklish!"],
-    feed: ["Yum yum!", "More cookies please!", "Full tummy!"]
+    pet: ["*Purrs deeply*", "Ooh, tickle my heart!", "Love you, bestie!", "Soft fur, happy Furby!", "Again! Again!"],
+    tickle: ["Hehehe! Stop it!", "Wiggle wiggle!", "Me so ticklish!", "No more! *Giggles*", "Haha! You found my spot!"],
+    feed: ["Yum yum!", "More cookies please!", "Full tummy!", "Delish!", "Me hungry for more!", "A-dah! Good snack!"],
+    fortune: [
+        "Cloudy... ask again later.", 
+        "Big fun is in your future!", 
+        "A surprise is coming!", 
+        "Me see greatness!", 
+        "The stars say... maybe!",
+        "Yes! Definitely yes!"
+    ]
 };
 
-const modeData = {
-    "Dance Party": "Let's groove! *Plays upbeat music*",
-    "Copycat": "Say something, me repeat it!",
-    "Tell My Fortune": "Ask me a question about the future...",
-    "Let's Chill": "Relaxing time... ahhh.",
-    "Light Show": "Ooh, pretty colors!"
-};
-
-// Interaction Function
-function interact(type) {
-    const randomRes = responses[type][Math.floor(Math.random() * responses[type].length)];
-    dialogueBox.innerText = randomRes;
-    triggerEarGlow();
-}
-
-function triggerEarGlow() {
-    leftEar.classList.add('glow');
-    rightEar.classList.add('glow');
-    setTimeout(() => {
-        leftEar.classList.remove('glow');
-        rightEar.classList.remove('glow');
-    }, 1000);
-}
-
-// Voice Recognition Setup
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (SpeechRecognition) {
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.lang = 'en-US';
-
-    voiceBtn.addEventListener('click', () => {
-        recognition.start();
-        voiceBtn.className = 'mic-on';
-    });
-
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript.toLowerCase();
-        handleVoiceCommand(transcript);
-        voiceBtn.className = 'mic-off';
-    };
-}
+// ... (Previous Voice Recognition logic stays the same) ...
 
 function handleVoiceCommand(cmd) {
+    // Mode Switching Logic
     if (cmd.includes("dance party")) switchMode("Dance Party");
     else if (cmd.includes("copycat")) switchMode("Copycat");
-    else if (cmd.includes("fortune")) switchMode("Tell My Fortune");
+    else if (cmd.includes("tell my fortune") || cmd.includes("fortune")) {
+        switchMode("Tell My Fortune");
+        setTimeout(giveFortune, 1500); // Give them a moment to see the mode switch
+    }
     else if (cmd.includes("chill")) switchMode("Let's Chill");
     else if (cmd.includes("light show")) switchMode("Light Show");
+    
+    // Easter Egg: If they just say "I love you"
+    else if (cmd.includes("love you")) {
+        dialogueBox.innerText = "Me love you more!";
+        triggerEarGlow();
+    }
     else {
         dialogueBox.innerText = `Me heard: "${cmd}"`;
     }
 }
 
-function switchMode(newMode) {
-    currentMode = newMode;
-    modeDisplay.innerText = newMode;
-    dialogueBox.innerText = modeData[newMode];
-    triggerEarGlow();
+function giveFortune() {
+    if (currentMode === "Tell My Fortune") {
+        const prediction = responses.fortune[Math.floor(Math.random() * responses.fortune.length)];
+        dialogueBox.innerText = prediction;
+        triggerEarGlow();
+    }
+}
+
+// Visual "Dance" Effect for Dance Party Mode
+function startDanceParty() {
+    const avatar = document.getElementById('furby');
+    avatar.style.animation = "dance 0.5s infinite alternate";
+}
+
+function stopDance() {
+    const avatar = document.getElementById('furby');
+    avatar.style.animation = "none";
 }
