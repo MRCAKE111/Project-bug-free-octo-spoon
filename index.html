@@ -1,36 +1,210 @@
 <!DOCTYPE html>
-  <head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Furby Simulation</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Furby Virtual Friend</title>
+    <style>
+        body {
+            background: #121212;
+            color: #ffffff;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .simulation-container {
+            text-align: center;
+            background: #222;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 4px solid #7a4bbd;
+        }
+
+        /* Furby Body */
+        .furby-avatar {
+            width: 180px;
+            height: 200px;
+            background: #7a4bbd;
+            border-radius: 50% 50% 40% 40%;
+            margin: 0 auto 30px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        /* Ears & Animations */
+        .ear {
+            width: 50px;
+            height: 90px;
+            background: #9b6ad6;
+            position: absolute;
+            top: -35px;
+            border-radius: 50% 50% 10% 10%;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .ear.left { left: -15px; transform: rotate(-25deg); }
+        .ear.right { right: -15px; transform: rotate(25deg); }
+
+        .glow { background: #00ffcc !important; box-shadow: 0 0 20px #00ffcc; }
+
+        @keyframes rainbow-glow {
+            0% { background: #ff0000; box-shadow: 0 0 15px #ff0000; }
+            33% { background: #00ff00; box-shadow: 0 0 15px #00ff00; }
+            66% { background: #0000ff; box-shadow: 0 0 15px #0000ff; }
+            100% { background: #ff00ff; box-shadow: 0 0 15px #ff00ff; }
+        }
+        .rainbow { animation: rainbow-glow 0.5s infinite; }
+
+        @keyframes dance {
+            from { transform: translateY(0) rotate(-3deg); }
+            to { transform: translateY(-15px) rotate(3deg); }
+        }
+
+        /* Face Features */
+        .eyes { display: flex; justify-content: space-around; padding-top: 50px; }
+        .eye { width: 35px; height: 35px; background: #fff; border-radius: 50%; position: relative; border: 3px solid #333; }
+        .eye::after { content: ''; position: absolute; width: 18px; height: 18px; background: #000; border-radius: 50%; top: 8px; left: 8px; }
+        .beak { width: 25px; height: 20px; background: #ffcc00; margin: 15px auto; clip-path: polygon(50% 100%, 0 0, 100% 0); }
+
+        /* UI Elements */
+        .status-panel { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; margin-top: 20px; }
+        #dialogue { font-size: 1.2rem; min-height: 1.5em; color: #00ffcc; }
+        
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 20px;
+            background: #9b6ad6;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .controls button:hover { background: #b189e6; transform: scale(1.05); }
+        #voiceBtn.mic-on { background: #ff4b4b; animation: pulse 1s infinite; }
+    </style>
 </head>
 <body>
-    <div class="simulation-container">
-        <div class="furby-avatar" id="furby">
-            <div class="ears">
-                <div class="ear left" id="leftEar"></div>
-                <div class="ear right" id="rightEar"></div>
-            </div>
-            <div class="eyes">
-                <div class="eye"></div>
-                <div class="eye"></div>
-            </div>
-            <div class="beak" id="beak"></div>
-        </div>
 
-        <div class="controls">
-            <button onclick="interact('pet')">Pet</button>
-            <button onclick="interact('tickle')">Tickle</button>
-            <button onclick="interact('feed')">Feed</button>
-            <button id="voiceBtn" class="mic-off">Voice Command</button>
+<div class="simulation-container">
+    <div class="furby-avatar" id="furby">
+        <div class="ear left" id="lEar"></div>
+        <div class="ear right" id="rEar"></div>
+        <div class="eyes">
+            <div class="eye"></div>
+            <div class="eye"></div>
         </div>
-
-        <div class="status-panel">
-            <p>Mode: <span id="currentMode">Normal</span></p>
-            <p id="dialogue">"Hoo-hey! Me ready to play!"</p>
-        </div>
+        <div class="beak"></div>
     </div>
-    <script src="script.js"></script>
+
+    <div class="controls">
+        <button onclick="interact('pet')">Pet</button>
+        <button onclick="interact('tickle')">Tickle</button>
+        <button onclick="interact('feed')">Feed</button>
+        <button id="voiceBtn">Voice Command</button>
+    </div>
+
+    <div class="status-panel">
+        <p>Current Mode: <strong id="modeDisplay">Let's Play</strong></p>
+        <div id="dialogue">"Doo-dah! Me happy to see you!"</div>
+    </div>
+</div>
+
+<script>
+    const dialogue = document.getElementById('dialogue');
+    const modeDisplay = document.getElementById('modeDisplay');
+    const lEar = document.getElementById('lEar');
+    const rEar = document.getElementById('rEar');
+    const furby = document.getElementById('furby');
+    const voiceBtn = document.getElementById('voiceBtn');
+
+    const data = {
+        pet: ["*Purrs*", "Ooh, so soft!", "Me love pets!", "More please!"],
+        tickle: ["Hehehe! Stop it!", "Wiggle wiggle!", "Me ticklish!", "Haha!"],
+        feed: ["Yum yum!", "A-dah! Good!", "Nom nom!", "Full tummy!"],
+        fortunes: ["Yes, definitely!", "Me see big fun!", "Maybe... ask later!", "Cloudy, try again!", "Stars say YES!"],
+        songs: ["Doo-bee-doo-dah!", "La la la-la!", "Furby-rock is here!"]
+    };
+
+    function interact(type) {
+        stopSpecialEffects();
+        const choices = data[type];
+        say(choices[Math.floor(Math.random() * choices.length)]);
+        flashEars();
+    }
+
+    function say(text) {
+        dialogue.innerText = text;
+    }
+
+    function flashEars() {
+        lEar.classList.add('glow');
+        rEar.classList.add('glow');
+        setTimeout(() => {
+            lEar.classList.remove('glow');
+            rEar.classList.remove('glow');
+        }, 1000);
+    }
+
+    function stopSpecialEffects() {
+        furby.style.animation = "none";
+        lEar.className = "ear left";
+        rEar.className = "ear right";
+    }
+
+    // Modes Logic
+    function activateMode(mode) {
+        stopSpecialEffects();
+        modeDisplay.innerText = mode;
+        
+        if (mode === "Dance Party") {
+            furby.style.animation = "dance 0.4s infinite alternate";
+            say(data.songs[Math.floor(Math.random() * data.songs.length)]);
+        } else if (mode === "Light Show") {
+            lEar.classList.add('rainbow');
+            rEar.classList.add('rainbow');
+            say("Ooh! Pretty colors!");
+        } else if (mode === "Tell My Fortune") {
+            say("Hmm... me see...");
+            setTimeout(() => say(data.fortunes[Math.floor(Math.random() * data.fortunes.length)]), 1500);
+        } else if (mode === "Copycat") {
+            say("Me copy you! Say something!");
+        } else if (mode === "Let's Chill") {
+            say("Ahhh... relaxing time.");
+        }
+    }
+
+    // Voice Recognition
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (Recognition) {
+        const rec = new Recognition();
+        voiceBtn.onclick = () => {
+            rec.start();
+            voiceBtn.classList.add('mic-on');
+            say("Me listening...");
+        };
+
+        rec.onresult = (e) => {
+            const cmd = e.results[0][0].transcript.toLowerCase();
+            voiceBtn.classList.remove('mic-on');
+            
+            if (cmd.includes("dance")) activateMode("Dance Party");
+            else if (cmd.includes("fortune")) activateMode("Tell My Fortune");
+            else if (cmd.includes("light show")) activateMode("Light Show");
+            else if (cmd.includes("copycat")) activateMode("Copycat");
+            else if (cmd.includes("chill")) activateMode("Let's Chill");
+            else if (cmd.includes("hello") || cmd.includes("hi")) say("Kah-may-may! (Hello!)");
+            else say(`Me heard "${cmd}" but me no understand yet!`);
+        };
+
+        rec.onerror = () => voiceBtn.classList.remove('mic-on');
+    }
+</script>
 </body>
 </html>
