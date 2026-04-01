@@ -100,3 +100,19 @@ button {
     50% { opacity: 0.5; }
     100% { opacity: 1; }
 }
+@keyframes dance {
+    from { transform: translateY(0) rotate(-5deg); }
+    to { transform: translateY(-20px) rotate(5deg); }
+}
+
+/* Add a class to trigger the light show colors */
+.light-show-active .ear {
+    animation: rainbow 1s infinite;
+}
+
+@keyframes rainbow {
+    0% { background: #ff0000; box-shadow: 0 0 15px #ff0000; }
+    33% { background: #00ff00; box-shadow: 0 0 15px #00ff00; }
+    66% { background: #0000ff; box-shadow: 0 0 15px #0000ff; }
+    100% { background: #ff00ff; box-shadow: 0 0 15px #ff00ff; }
+}
